@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мой бюджет за 5 минут — бесплатный трекер</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F5F0;--surface:#FFFFFF;--border:#E8E4DC;
+  --text:#1A1814;--muted:#7A7670;--hint:#B5B0AA;
+  --green:#2D6A4F;--green-bg:#EAF4EE;--green-light:#C0DD97;
+  --red:#A32D2D;--red-bg:#FDECEA;
+  --blue:#0C447C;--blue-bg:#E6F1FB;
+  --amber:#633806;--amber-bg:#FAEEDA;
+  --purple:#3C3489;--purple-bg:#EEEDFE;
+}
+body{background:var(--bg);font-family:'Montserrat',sans-serif;color:var(--text);min-height:100vh;padding:1.5rem 1rem 4rem}
+.container{max-width:640px;margin:0 auto}
+.top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
+h1{font-size:1.6rem;font-weight:600;color:var(--green);letter-spacing:-0.02em;line-height:1.2}
+.sub{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px}
+.month-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.month-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+select{font-family:'Montserrat',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);cursor:pointer;outline:none}
+.tabs{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap}
+.tab{padding:7px 16px;border:1px solid var(--border);border-radius:20px;font-size:12px;font-family:'Montserrat',sans-serif;cursor:pointer;background:var(--surface);color:var(--muted);transition:all 0.15s}
+.tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+.panel{display:none}.panel.active{display:block}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px}
+.metric-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px}
+.metric-val{font-size:20px;font-weight:600;letter-spacing:-0.02em}
+.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}.amber{color:var(--amber)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1rem}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.card-total{font-size:15px;font-weight:600}
+.row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+input[type=text]{flex:1;min-width:0;font-family:'Montserrat',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:var(--bg);color:var(--text);outline:none}
+input[type=text]:focus{background:var(--surface);border-color:#aaa}
+input[type=text]::placeholder{color:var(--hint)}
+input[type=number]{width:100px;font-family:'Montserrat',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 9px;background:var(--bg);color:var(--text);outline:none;text-align:right}
+input[type=number]:focus{background:var(--surface);border-color:#aaa}
+.del{background:none;border:none;cursor:pointer;color:var(--hint);font-size:17px;padding:3px 5px;border-radius:5px;line-height:1;transition:color 0.15s;flex-shrink:0}
+.del:hover{color:var(--red)}
+.add-btn{background:none;border:1px dashed var(--border);border-radius:8px;padding:7px 12px;font-family:'Montserrat',sans-serif;font-size:12px;color:var(--muted);cursor:pointer;margin-top:4px;width:100%;transition:all 0.15s}
+.add-btn:hover{border-color:#aaa;color:var(--text);background:var(--bg)}
+.bar-wrap{margin-bottom:10px}
+.bar-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+.bar-track{height:7px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease}
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.goal-field label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em}
+.goal-field input{width:100%}
+.prog-row{display:flex;align-items:center;gap:10px}
+.prog-track{flex:1;height:10px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)}
+.prog-fill{height:100%;border-radius:5px;background:var(--green);transition:width 0.5s}
+.prog-pct{font-size:13px;font-weight:600;color:var(--green);min-width:42px;text-align:right}
+.goal-msg{font-size:12px;color:var(--muted);margin-top:8px}
+.fc-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:4px}
+.fc{text-align:center}
+.fc-lbl{font-size:10px;color:var(--hint);margin-bottom:3px}
+.fc-bars{height:68px;display:flex;align-items:flex-end;justify-content:center}
+.fc-bar{width:14px;border-radius:2px 2px 0 0;transition:height 0.5s}
+.fc-val{font-size:10px;color:var(--muted);margin-top:3px}
+.tracker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tr-month{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px}
+.tr-month-name{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px}
+.tr-field{margin-bottom:6px}
+.tr-field label{font-size:10px;color:var(--hint);display:block;margin-bottom:2px}
+.tr-field input{width:100%;font-family:'Montserrat',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:6px;padding:5px 7px;background:var(--bg);color:var(--text);outline:none;text-align:right}
+.tr-surplus{font-size:12px;font-weight:600;margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+.hint-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;font-size:12px;color:var(--muted);line-height:1.7}
+.hint-box b{color:var(--text)}
+.footer{font-size:11px;color:var(--hint);text-align:center;margin-top:1.5rem;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="top">
+  <div>
+    <h1>Мой бюджет</h1>
+    <div class="sub">Бесплатный трекер расходов</div>
+  </div>
+  <div class="month-wrap">
+    <div class="month-label">Месяц</div>
+    <select id="month-sel" onchange="updateForecast()">
+      <option>Январь</option><option>Февраль</option><option>Март</option>
+      <option>Апрель</option><option>Май</option><option selected>Июнь</option>
+      <option>Июль</option><option>Август</option><option>Сентябрь</option>
+      <option>Октябрь</option><option>Ноябрь</option><option>Декабрь</option>
+    </select>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('budget',this)">Бюджет</button>
+  <button class="tab" onclick="switchTab('goal',this)">Цель</button>
+  <button class="tab" onclick="switchTab('forecast',this)">Прогноз</button>
+  <button class="tab" onclick="switchTab('tracker',this)">История</button>
+</div>
+
+<div id="panel-budget" class="panel active">
+  <div class="summary">
+    <div class="metric"><div class="metric-label">Доходы</div><div class="metric-val blue" id="s-income">0 ₽</div></div>
+    <div class="metric"><div class="metric-label">Расходы</div><div class="metric-val red" id="s-expenses">0 ₽</div></div>
+    <div class="metric"><div class="metric-label">Остаток</div><div class="metric-val" id="s-left">0 ₽</div></div>
+    <div class="metric"><div class="metric-label">Норма сбережений</div><div class="metric-val" id="s-rate">0%</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-title"><span class="dot" style="background:#378ADD"></span>Доходы</div>
+      <div class="card-total blue" id="inc-total">0 ₽</div>
+    </div>
+    <div id="income-rows"></div>
+    <button class="add-btn" onclick="addRow('income')">+ Добавить доход</button>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-title"><span class="dot" style="background:#7F77DD"></span>Постоянные расходы</div>
+      <div class="card-total" style="color:#3C3489" id="fixed-total">0 ₽</div>
+    </div>
+    <div id="fixed-rows"></div>
+    <button class="add-btn" onclick="addRow('fixed')">+ Добавить статью</button>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-title"><span class="dot" style="background:#EF9F27"></span>Переменные расходы</div>
+      <div class="card-total amber" id="variable-total">0 ₽</div>
+    </div>
+    <div id="variable-rows"></div>
+    <button class="add-btn" onclick="addRow('variable')">+ Добавить статью</button>
+  </div>
+
+  <div class="card">
+    <div class="card-hd" style="margin-bottom:14px">
+      <div class="card-title"><span class="dot" style="background:#639922"></span>Структура расходов</div>
+    </div>
+    <div id="breakdown"></div>
+  </div>
+</div>
+
+<div id="panel-goal" class="panel">
+  <div class="card">
+    <div class="card-hd" style="margin-bottom:14px">
+      <div class="card-title"><span class="dot" style="background:var(--green)"></span>Финансовая цель</div>
+    </div>
+    <div class="goal-grid">
+      <div class="goal-field"><label>Цель (₽)</label><input type="number" id="goal-target" value="50000" min="0" oninput="updateAll()"></div>
+      <div class="goal-field"><label>Уже накоплено (₽)</label><input type="number" id="goal-saved" value="0" min="0" oninput="updateAll()"></div>
+    </div>
+    <div class="prog-row">
+      <div class="prog-track"><div class="prog-fill" id="goal-bar" style="width:0%"></div></div>
+      <div class="prog-pct" id="goal-pct">0%</div>
+    </div>
+    <div class="goal-msg" id="goal-msg">Введите цель и накопленную сумму</div>
+  </div>
+  <div class="hint-box">
+    <b>Советы по сбережениям:</b><br>
+    Норма сбережений 20%+ считается отличной.<br>
+    Даже 5 000 ₽/месяц = 60 000 ₽ в год.<br>
+    Правило 50/30/20: 50% — нужды, 30% — желания, 20% — сбережения.
+  </div>
+</div>
+
+<div id="panel-forecast" class="panel">
+  <div class="card">
+    <div class="card-hd" style="margin-bottom:12px">
+      <div class="card-title"><span class="dot" style="background:#534AB7"></span>Прогноз на 6 месяцев</div>
+    </div>
+    <div class="fc-grid" id="forecast-grid"></div>
+    <div style="font-size:11px;color:var(--hint);margin-top:10px">На основе текущего остатка. Предполагает одинаковые доходы и расходы.</div>
+  </div>
+</div>
+
+<div id="panel-tracker" class="panel">
+  <div class="card">
+    <div class="card-hd" style="margin-bottom:14px">
+      <div class="card-title"><span class="dot" style="background:#378ADD"></span>История по месяцам</div>
+    </div>
+    <div class="tracker-grid" id="tracker-grid"></div>
+    <div style="font-size:11px;color:var(--hint)">Вводите фактические данные каждый месяц для отслеживания прогресса.</div>
+  </div>
+</div>
+
+<div class="footer">
+  Ваши данные никуда не отправляются и не сохраняются на сервере.<br>
+  Бесплатный шаблон — финансовые инструменты для реальных людей.
+</div>
+</div>
+
+<script>
+const data={
+  income:[{label:'Зарплата',amount:80000},{label:'Подработка',amount:10000}],
+  fixed:[{label:'Аренда/ипотека',amount:25000},{label:'Телефон',amount:600},{label:'Интернет',amount:500},{label:'Страховка',amount:1000}],
+  variable:[{label:'Продукты',amount:12000},{label:'Транспорт',amount:4000},{label:'Кафе / рестораны',amount:5000},{label:'Развлечения',amount:3000},{label:'Одежда',amount:2000}]
+};
+const months=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+const fmt=n=>(Math.round(Math.abs(n))).toLocaleString('ru-RU')+' ₽';
+const sum=arr=>arr.reduce((a,b)=>a+(parseFloat(b.amount)||0),0);
+
+function switchTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+function renderRows(type){
+  const c=document.getElementById(type+'-rows');
+  c.innerHTML='';
+  data[type].forEach((item,i)=>{
+    const d=document.createElement('div');
+    d.className='row';
+    d.innerHTML=`<input type="text" placeholder="Название" value="${item.label}" oninput="data['${type}'][${i}].label=this.value">
+    <input type="number" value="${item.amount}" min="0" oninput="data['${type}'][${i}].amount=parseFloat(this.value)||0;updateAll()">
+    <button class="del" onclick="data['${type}'].splice(${i},1);renderRows('${type}');updateAll()" aria-label="Удалить">×</button>`;
+    c.appendChild(d);
+  });
+}
+function addRow(type){data[type].push({label:'',amount:0});renderRows(type);updateAll();}
+
+function updateAll(){
+  const inc=sum(data.income),fix=sum(data.fixed),vari=sum(data.variable);
+  const totalExp=fix+vari,left=inc-totalExp;
+  const rate=inc>0?Math.round((left/inc)*100):0;
+  document.getElementById('s-income').textContent=fmt(inc);
+  document.getElementById('s-expenses').textContent=fmt(totalExp);
+  const le=document.getElementById('s-left');
+  le.textContent=(left<0?'−':'')+fmt(left);
+  le.className='metric-val '+(left>=0?'green':'red');
+  const re=document.getElementById('s-rate');
+  re.textContent=rate+'%';
+  re.className='metric-val '+(rate>=20?'green':rate>=0?'blue':'red');
+  document.getElementById('inc-total').textContent=fmt(inc);
+  document.getElementById('fixed-total').textContent=fmt(fix);
+  document.getElementById('variable-total').textContent=fmt(vari);
+  const target=parseFloat(document.getElementById('goal-target').value)||0;
+  const saved=parseFloat(document.getElementById('goal-saved').value)||0;
+  const pct=target>0?Math.min(100,Math.round((saved/target)*100)):0;
+  document.getElementById('goal-bar').style.width=pct+'%';
+  document.getElementById('goal-pct').textContent=pct+'%';
+  const ml=left>0&&target>saved?Math.ceil((target-saved)/left):null;
+  document.getElementById('goal-msg').textContent=saved>=target&&target>0?'Цель достигнута! Поставьте новую.':ml?`При таком темпе цель будет достигнута через ${ml} мес.`:'Продолжайте откладывать для достижения цели.';
+  const cats=[
+    {label:'Постоянные расходы',val:fix,color:'#534AB7'},
+    {label:'Переменные расходы',val:vari,color:'#BA7517'},
+    {label:'Сбережения/остаток',val:Math.max(0,left),color:'#3B6D11'}
+  ];
+  const total=fix+vari+Math.max(0,left)||1;
+  document.getElementById('breakdown').innerHTML=cats.map(c=>{
+    const p=Math.round((c.val/total)*100);
+    return `<div class="bar-wrap"><div class="bar-meta"><span>${c.label}</span><span>${fmt(c.val)} (${p}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${c.color}"></div></div></div>`;
+  }).join('');
+  updateForecast(left,saved,target);
+}
+
+function updateForecast(surplus,saved,target){
+  if(surplus===undefined){
+    const inc=sum(data.income),totalExp=sum(data.fixed)+sum(data.variable);
+    surplus=inc-totalExp;
+    saved=parseFloat(document.getElementById('goal-saved').value)||0;
+  }
+  const selIdx=document.getElementById('month-sel').selectedIndex;
+  const grid=document.getElementById('forecast-grid');
+  const vals=[];let cum=saved||0;
+  for(let i=0;i<6;i++){cum+=surplus;vals.push(cum);}
+  const maxAbs=Math.max(...vals.map(Math.abs),1);
+  grid.innerHTML='';
+  vals.forEach((v,i)=>{
+    const mIdx=(selIdx+i)%12;
+    const h=Math.max(4,Math.round((Math.abs(v)/maxAbs)*64));
+    const color=v>=0?'#3B6D11':'#A32D2D';
+    const d=document.createElement('div');
+    d.className='fc';
+    d.innerHTML=`<div class="fc-lbl">${months[mIdx]}</div><div class="fc-bars"><div class="fc-bar" style="height:${h}px;background:${color}"></div></div><div class="fc-val">${v<0?'−':''}${fmt(v)}</div>`;
+    grid.appendChild(d);
+  });
+}
+
+function buildTracker(){
+  const selIdx=document.getElementById('month-sel').selectedIndex;
+  const grid=document.getElementById('tracker-grid');
+  grid.innerHTML='';
+  for(let i=0;i<6;i++){
+    const mIdx=(selIdx+i)%12;
+    const d=document.createElement('div');
+    d.className='tr-month';
+    d.innerHTML=`<div class="tr-month-name">${months[mIdx]}</div>
+    <div class="tr-field"><label>Доходы (₽)</label><input type="number" value="0" min="0" id="tr-inc-${i}" oninput="calcTracker(${i})"></div>
+    <div class="tr-field"><label>Расходы (₽)</label><input type="number" value="0" min="0" id="tr-exp-${i}" oninput="calcTracker(${i})"></div>
+    <div class="tr-surplus green" id="tr-sur-${i}">Остаток: 0 ₽</div>`;
+    grid.appendChild(d);
+  }
+}
+function calcTracker(i){
+  const inc=parseFloat(document.getElementById(`tr-inc-${i}`).value)||0;
+  const exp=parseFloat(document.getElementById(`tr-exp-${i}`).value)||0;
+  const sur=inc-exp;
+  const el=document.getElementById(`tr-sur-${i}`);
+  el.textContent=`Остаток: ${sur<0?'−':''}${fmt(sur)}`;
+  el.className='tr-surplus '+(sur>=0?'green':'red');
+}
+
+['income','fixed','variable'].forEach(renderRows);
+updateAll();
+buildTracker();
+document.getElementById('month-sel').addEventListener('change',buildTracker);
+</script>
+</body>
+</html>
